@@ -175,7 +175,7 @@ router.put('/users/:id/reset-password', isAdmin, async (req, res) => {
         }
 
         // Hash new password
-        const bcrypt = require('bcrypt');
+        const bcrypt = require('bcryptjs');
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
