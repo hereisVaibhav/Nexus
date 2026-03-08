@@ -9,6 +9,8 @@ export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
     useEffect(() => {
         // Initialize from local storage
         const storedUser = localStorage.getItem('user');
@@ -20,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await fetch('http://localhost:5000/auth/signin', {
+            const response = await fetch(`${API_URL}/auth/signin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -44,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (fullName, email, password, securityQuestion, securityAnswer) => {
         try {
-            const response = await fetch('http://localhost:5000/auth/signup', {
+            const response = await fetch(`${API_URL}/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fullName, email, password, securityQuestion, securityAnswer })
@@ -68,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
     const fetchSecurityQuestion = async (email) => {
         try {
-            const response = await fetch('http://localhost:5000/auth/get-security-question', {
+            const response = await fetch(`${API_URL}/auth/get-security-question`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -83,7 +85,7 @@ export const AuthProvider = ({ children }) => {
 
     const resetPassword = async (email, answer, newPassword) => {
         try {
-            const response = await fetch('http://localhost:5000/auth/reset-password', {
+            const response = await fetch(`${API_URL}/auth/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, answer, newPassword })

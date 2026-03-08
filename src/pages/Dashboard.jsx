@@ -13,6 +13,7 @@ const Dashboard = () => {
 
     const [profileLoading, setProfileLoading] = useState(true);
     const [profile, setProfile] = useState(null);
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const [generatingPlan, setGeneratingPlan] = useState(false);
     const [expandedItems, setExpandedItems] = useState({}); // Track expanded sections
     const [isMenuOpen, setIsMenuOpen] = useState(false); // Menu toggle state
@@ -35,7 +36,7 @@ const Dashboard = () => {
             if (!user) return;
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:5000/profile', {
+                const res = await fetch(`${API_URL}/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -69,7 +70,7 @@ const Dashboard = () => {
             };
 
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/profile/update-plan', {
+            const res = await fetch(`${API_URL}/profile/update-plan`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -99,7 +100,7 @@ const Dashboard = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/profile/delete-plan', {
+            const res = await fetch(`${API_URL}/profile/delete-plan`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

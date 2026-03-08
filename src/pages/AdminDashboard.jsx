@@ -33,6 +33,7 @@ const AdminDashboard = () => {
     const [resetSuccess, setResetSuccess] = useState('');
     const navigate = useNavigate();
     const { user: authUser, updateUser } = useAuth();
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     useEffect(() => {
         fetchData();
@@ -41,10 +42,10 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         try {
             const [usersRes, statsRes] = await Promise.all([
-                fetch('http://localhost:5000/admin/users', {
+                fetch(`${API_URL}/admin/users`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 }),
-                fetch('http://localhost:5000/admin/stats', {
+                fetch(`${API_URL}/admin/stats`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 })
             ]);
@@ -82,7 +83,7 @@ const AdminDashboard = () => {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/admin/users/${userId}${endpoint}`, {
+            const res = await fetch(`${API_URL}/admin/users/${userId}${endpoint}`, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ const AdminDashboard = () => {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/admin/users/${resetModal.userId}/reset-password`, {
+            const res = await fetch(`${API_URL}/admin/users/${resetModal.userId}/reset-password`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
