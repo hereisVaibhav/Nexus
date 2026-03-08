@@ -42,8 +42,8 @@ router.get('/users', isAdmin, async (req, res) => {
         `);
         res.json(users.rows);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Admin route error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -58,8 +58,8 @@ router.get('/stats', isAdmin, async (req, res) => {
             activePlans: parseInt(activePlans.rows[0].count)
         });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Admin route error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -84,8 +84,8 @@ router.put('/users/:id/subscription', isAdmin, async (req, res) => {
 
         res.json(updateStatus.rows[0]);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Admin route error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -106,8 +106,8 @@ router.put('/users/:id/status', isAdmin, async (req, res) => {
 
         res.json(updateStatus.rows[0]);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Admin route error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -132,8 +132,8 @@ router.put('/users/:id/role', isAdmin, async (req, res) => {
 
         res.json(updateStatus.rows[0]);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Admin route error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -153,8 +153,8 @@ router.delete('/users/:id', isAdmin, async (req, res) => {
 
         res.json({ message: "User deleted successfully" });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Admin route error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -183,8 +183,8 @@ router.put('/users/:id/reset-password', isAdmin, async (req, res) => {
 
         res.json({ message: 'Password reset successfully.' });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Admin route error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 

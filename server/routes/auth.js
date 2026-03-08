@@ -47,8 +47,8 @@ router.post('/signup', async (req, res) => {
         return res.json({ token, user: { id: newUser.rows[0].id, name: newUser.rows[0].full_name, email: newUser.rows[0].email, role: newUser.rows[0].role, subscription: newUser.rows[0].subscription, login_streak: 1 } });
 
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Signup error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -122,8 +122,8 @@ router.post('/signin', async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Signin error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -143,8 +143,8 @@ router.post('/get-security-question', async (req, res) => {
 
         res.json({ question: user.rows[0].security_question });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Security question error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -178,8 +178,8 @@ router.post('/reset-password', async (req, res) => {
 
         res.json({ message: 'Password reset successful' });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Reset password error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 

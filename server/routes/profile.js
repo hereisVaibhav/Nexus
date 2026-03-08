@@ -25,8 +25,8 @@ router.get('/', authenticateToken, async (req, res) => {
         );
         res.json(userProfile.rows[0]);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Get profile error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -59,8 +59,8 @@ router.post('/update-plan', authenticateToken, async (req, res) => {
         res.json({ message: 'Plan updated successfully' });
 
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Update plan error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
@@ -76,8 +76,8 @@ router.delete('/delete-plan', authenticateToken, async (req, res) => {
         );
         res.json({ message: 'Plan deleted successfully' });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error("Delete plan error:", err.message);
+        res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 
