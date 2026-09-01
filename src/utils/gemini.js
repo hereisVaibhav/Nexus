@@ -16,9 +16,29 @@ if (API_KEY) {
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const getModel = () => {
-  // Use model name or fallback to valid working model
-  const validModel = (MODEL_NAME && !MODEL_NAME.startsWith('gemma-')) ? MODEL_NAME : "gemini-3.6-flash";
-  return genAI.getGenerativeModel({ model: validModel });
+  let modelName = MODEL_NAME;
+  if (!modelName || modelName.toLowerCase().includes("gemma")) {
+    modelName = "gemini-3.6-flash";
+  }
+  
+  let primaryModel;
+  try {
+    primaryModel = genAI.getGenerativeModel({ model: modelName });
+  } catch (e) {
+    primaryModel = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+  }
+
+  return {
+    generateContent: async (prompt) => {
+      try {
+        return await primaryModel.generateContent(prompt);
+      } catch (err) {
+        console.warn(`Model '${modelName}' failed (${err.message}). Retrying with gemini-3.6-flash...`);
+        const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+        return await fallbackModel.generateContent(prompt);
+      }
+    }
+  };
 };
 
 export const generateWorkout = async (workoutDetails) => {
