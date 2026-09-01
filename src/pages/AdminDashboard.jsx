@@ -20,6 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ExploreMenu from '../components/ExploreMenu';
+import { getApiUrl } from '../utils/apiConfig';
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
@@ -33,7 +34,8 @@ const AdminDashboard = () => {
     const [resetSuccess, setResetSuccess] = useState('');
     const navigate = useNavigate();
     const { user: authUser, updateUser } = useAuth();
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_URL = getApiUrl();
+
 
     useEffect(() => {
         fetchData();

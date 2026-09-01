@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ? import.meta.env.VITE_GEMINI_API_KEY.trim() : "";
-const MODEL_NAME = import.meta.env.VITE_MODEL_NAME || "gemini-3.6-flash";
+const MODEL_NAME = import.meta.env.VITE_MODEL_NAME || "gemma-4-31b-it";
 
 if (API_KEY) {
   console.log("Gemini API Key Debug:");
@@ -17,15 +17,16 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 const getModel = () => {
   let modelName = MODEL_NAME;
-  if (!modelName || modelName.toLowerCase().includes("gemma")) {
-    modelName = "gemini-3.6-flash";
+  // If model name is not set or refers to invalid gemma variants, map to official Gemma 4 model
+  if (!modelName || modelName.includes("gemma-3") || modelName.includes("gemma-2") || modelName.includes("gemma-4-27b")) {
+    modelName = "gemma-4-31b-it";
   }
   
   let primaryModel;
   try {
     primaryModel = genAI.getGenerativeModel({ model: modelName });
   } catch (e) {
-    primaryModel = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+    primaryModel = genAI.getGenerativeModel({ model: "gemma-4-31b-it" });
   }
 
   return {
@@ -33,8 +34,8 @@ const getModel = () => {
       try {
         return await primaryModel.generateContent(prompt);
       } catch (err) {
-        console.warn(`Model '${modelName}' failed (${err.message}). Retrying with gemini-3.6-flash...`);
-        const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+        console.warn(`Model '${modelName}' failed (${err.message}). Retrying with gemma-4-31b-it...`);
+        const fallbackModel = genAI.getGenerativeModel({ model: "gemma-4-31b-it" });
         return await fallbackModel.generateContent(prompt);
       }
     }

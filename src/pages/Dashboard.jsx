@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { getPersistentDailyRoutine, generateWeeklyPlan } from '../utils/gemini';
 import LoadingOverlay from '../components/LoadingOverlay';
 import ExploreMenu from '../components/ExploreMenu';
+import { getApiUrl } from '../utils/apiConfig';
 
 const Dashboard = () => {
     const { user, logout, loading: authLoading } = useAuth();
@@ -13,8 +14,9 @@ const Dashboard = () => {
 
     const [profileLoading, setProfileLoading] = useState(true);
     const [profile, setProfile] = useState(null);
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_URL = getApiUrl();
     const [generatingPlan, setGeneratingPlan] = useState(false);
+
     const [expandedItems, setExpandedItems] = useState({}); // Track expanded sections
     const [isMenuOpen, setIsMenuOpen] = useState(false); // Menu toggle state
 
