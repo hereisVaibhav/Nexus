@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { Pool } = require('pg');
 
 dotenv.config();
 
@@ -22,13 +21,11 @@ app.use('/profile', require('./routes/profile'));
 app.use('/admin', require('./routes/admin'));
 
 // Database Connection Test
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
+const db = require('./db');
 
-pool.connect()
+db.query('SELECT NOW()')
     .then(() => console.log('Connected to PostgreSQL Database'))
-    .catch(err => console.error('Database connection error:', err.stack));
+    .catch(err => console.error('Database connection error:', err.message));
 
 // Basic Route
 app.get('/', (req, res) => {

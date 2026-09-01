@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ? import.meta.env.VITE_GEMINI_API_KEY.trim() : "";
-const MODEL_NAME = import.meta.env.VITE_MODEL_NAME || "gemma-3-27b-it";
+const MODEL_NAME = import.meta.env.VITE_MODEL_NAME || "gemini-3.6-flash";
 
 if (API_KEY) {
   console.log("Gemini API Key Debug:");
@@ -15,9 +15,15 @@ if (API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
+const getModel = () => {
+  // Use model name or fallback to valid working model
+  const validModel = (MODEL_NAME && !MODEL_NAME.startsWith('gemma-')) ? MODEL_NAME : "gemini-3.6-flash";
+  return genAI.getGenerativeModel({ model: validModel });
+};
+
 export const generateWorkout = async (workoutDetails) => {
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = getModel();
     const { level, type, duration, equipment, goal } = workoutDetails;
 
     const equipmentStr = equipment ? `Strictly use only this equipment: ${equipment}.` : 'Bodyweight only (No Equipment).';
@@ -53,7 +59,7 @@ export const generateWorkout = async (workoutDetails) => {
 
 export const generateBreathing = async (mood) => {
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = getModel();
     const prompt = `Generate a breathing technique for someone feeling ${mood}.
         Return the response in JSON format with the following keys:
         - title: String (catchy name)
@@ -76,7 +82,7 @@ export const generateBreathing = async (mood) => {
 
 export const generateMeal = async (diet, calories, style, ingredients) => {
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = getModel();
     const prompt = `Generate a ${style} ${diet} meal recipe roughly ${calories} calories. 
         Available ingredients: ${ingredients || "any"}.
         Return the response in JSON format with the following keys:
@@ -101,7 +107,7 @@ export const generateMeal = async (diet, calories, style, ingredients) => {
 
 export const generateDailyRoutineAI = async () => {
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = getModel();
     const prompt = `Generate a personalized daily wellness routine consisting of exactly one workout, one breathing session, and one healthy meal.
         Return the response in JSON format with the following structure:
         {
@@ -173,7 +179,7 @@ export const getPersistentDailyRoutine = async () => {
 
 export const generateWeeklyPlan = async (goal, duration = 7, durationType = 'days') => {
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = getModel();
     const daysToGenerate = durationType === 'weeks' ? duration * 7 : (durationType === 'months' ? duration * 30 : duration);
 
     const prompt = `Generate a detailed ${daysToGenerate}-day wellness plan for a goal of "${goal}".
@@ -248,7 +254,7 @@ export const generateWeeklyPlan = async (goal, duration = 7, durationType = 'day
 
 export const generateDietPlan = async (userDetails) => {
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = getModel();
     const {
       age, height, weight, gender, activity, goal, dietType, duration,
       macros, allergies, schedule, budget
@@ -329,7 +335,7 @@ export const generateDietPlan = async (userDetails) => {
 
 export const generateAlternativeMeal = async (mealType, calories, dietType, currentIngredients) => {
   try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const model = getModel();
     const prompt = `Generate a new ${mealType} recipe for a ${dietType} diet that is approximately ${calories}.
         It should be a completely different meal from one containing: ${currentIngredients}.
         
