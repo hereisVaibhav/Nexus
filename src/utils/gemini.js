@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY ? import.meta.env.VITE_GEMINI_API_KEY.trim() : "";
-const MODEL_NAME = import.meta.env.VITE_MODEL_NAME || "gemma-4-31b-it";
+const MODEL_NAME = import.meta.env.VITE_MODEL_NAME || "gemini-2.0-flash";
 
 if (API_KEY) {
   console.log("Gemini API Key Debug:");
@@ -13,30 +13,50 @@ if (API_KEY) {
   console.warn("Gemini API Key Status: MISSING");
 }
 
-const genAI = new GoogleGenerativeAI(API_KEY);
+const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+const WORKING_MODEL = "gemini-2.0-flash";
 
 const getModel = () => {
-  let modelName = MODEL_NAME;
-  // If model name is not set or refers to invalid gemma variants, map to official Gemma 4 model
-  if (!modelName || modelName.includes("gemma-3") || modelName.includes("gemma-2") || modelName.includes("gemma-4-27b")) {
-    modelName = "gemma-4-31b-it";
+  let modelName = MODEL_NAME || WORKING_MODEL;
+  // Map any unavailable/older Gemma variants to Gemini Flash
+  if (!modelName || modelName.includes("gemma")) {
+    modelName = WORKING_MODEL;
   }
-  
-  let primaryModel;
-  try {
-    primaryModel = genAI.getGenerativeModel({ model: modelName });
-  } catch (e) {
-    primaryModel = genAI.getGenerativeModel({ model: "gemma-4-31b-it" });
-  }
+
+  const generationConfig = {
+    maxOutputTokens: 8192,
+    temperature: 0.7,
+  };
 
   return {
     generateContent: async (prompt) => {
       try {
-        return await primaryModel.generateContent(prompt);
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: generationConfig,
+        });
+        if (!response.text) throw new Error("Empty response from model");
+        // Wrap in a response-compatible object to match old SDK interface
+        return {
+          response: {
+            text: () => response.text,
+          },
+        };
       } catch (err) {
-        console.warn(`Model '${modelName}' failed (${err.message}). Retrying with gemma-4-31b-it...`);
-        const fallbackModel = genAI.getGenerativeModel({ model: "gemma-4-31b-it" });
-        return await fallbackModel.generateContent(prompt);
+        console.warn(`Model '${modelName}' failed (${err.message}). Retrying with ${WORKING_MODEL}...`);
+        const response = await ai.models.generateContent({
+          model: WORKING_MODEL,
+          contents: prompt,
+          config: generationConfig,
+        });
+        if (!response.text) throw new Error("Model returned empty response. Please try a shorter duration.");
+        return {
+          response: {
+            text: () => response.text,
+          },
+        };
       }
     }
   };
@@ -201,72 +221,40 @@ export const getPersistentDailyRoutine = async () => {
 export const generateWeeklyPlan = async (goal, duration = 7, durationType = 'days') => {
   try {
     const model = getModel();
-    const daysToGenerate = durationType === 'weeks' ? duration * 7 : (durationType === 'months' ? duration * 30 : duration);
+    // Cap at 7 days to stay within model output limits
+    const rawDays = durationType === 'weeks' ? duration * 7 : (durationType === 'months' ? duration * 30 : duration);
+    const daysToGenerate = Math.min(rawDays, 7);
 
-    const prompt = `Generate a detailed ${daysToGenerate}-day wellness plan for a goal of "${goal}".
-        Return the response as a valid JSON object with a single key "days" which is an array of objects. 
-        
-        CRITICAL: All detailed steps MUST be in arrays ("exercises", "recipe", "guide"). Do NOT use "instructions" or "summary" fields.
-        
-        Each item in the "days" array must have:
-        - "day": Integer (1 to ${daysToGenerate})
-        - "focus": String (Short daily focus/theme)
-        - "workout": { 
-            "title": String, 
-            "duration": String (IMPORTANT: Keep workout durations short, between 20-30 mins. e.g., "20 mins", "25 mins", "30 mins"), 
-            "exercises": Array of Strings (CRITICAL: List 4-6 distinct items. Each item must be a specific exercise operation, e.g., "Squats: 3 sets of 12 reps. Keep back straight..."),
-            "warmup": String 
-          }
-        - "meal": { 
-            "title": String, 
-            "calories": String, 
-            "ingredients": Array of Strings (List of ingredients with quantities),
-            "recipe": Array of Strings (Step-by-step cooking instructions. Each string is one step.) 
-          }
-        - "breathing": { 
-            "title": String, 
-            "duration": String, 
-            "guide": Array of Strings (Step-by-step breathing instructions. Each string is one step.) 
-          }
-        
-        Example structure:
-        {
-          "days": [
-            { 
-              "day": 1, 
-              "focus": "Leg Day Strength",
-              "workout": { 
-                "title": "Squats & Lunges", 
-                "duration": "25 mins", 
-                "warmup": "5 mins dynamic stretching",
-                "exercises": [
-                   "Squats: 3x12. Stand feet shoulder-width apart, lower hips back and down, keeping chest up.",
-                   "Lunges: 3x10 per leg. Step forward, lowering hips until both knees are at 90 degrees.",
-                   "Calf Raises: 3x15. Stand on edge of step, raise heels up and down."
-                ]
-              },
-              "meal": { 
-                "title": "Grilled Chicken Salad", 
-                "calories": "500 kcal", 
-                "ingredients": ["1 Chicken Breast", "2 cups Mixed Greens"],
-                "recipe": ["1. Season chicken with herbs.", "2. Grill for 6-8 mins per side.", "3. Toss greens with dressing."]
-              },
-              "breathing": { 
-                "title": "Box Breathing", 
-                "duration": "5 mins", 
-                "guide": ["1. Inhale for 4 seconds.", "2. Hold for 4 seconds.", "3. Exhale for 4 seconds.", "4. Hold for 4 seconds."]
-              }
-            }
-          ]
-        }
+    const prompt = `Create a ${daysToGenerate}-day wellness plan for the goal: "${goal}".
+Return ONLY a JSON object with key "days" (array of ${daysToGenerate} objects). No markdown, no extra text.
 
-        Ensure the JSON is valid and only return the JSON block. Do not use Markdown code blocks.`;
+Each day object:
+{"day":1,"focus":"string","workout":{"title":"string","duration":"25 mins","warmup":"string","exercises":["Exercise: sets x reps. Brief tip."]},"meal":{"title":"string","calories":"500 kcal","ingredients":["qty ingredient"],"recipe":["Step."]},"breathing":{"title":"string","duration":"5 mins","guide":["Step."]}}
+
+Rules:
+- exercises: exactly 4 items
+- ingredients: exactly 4 items
+- recipe: exactly 3 steps
+- guide: exactly 4 steps
+- workout duration: 20-30 mins only`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
     const jsonBlock = text.replace(/```json|```/g, "").trim();
-    return JSON.parse(jsonBlock);
+    const parsed = JSON.parse(jsonBlock);
+
+    // If user asked for more than 7 days, repeat the cycle
+    if (rawDays > 7 && parsed.days) {
+      const extendedDays = [];
+      for (let i = 0; i < rawDays; i++) {
+        const dayData = { ...parsed.days[i % parsed.days.length], day: i + 1 };
+        extendedDays.push(dayData);
+      }
+      parsed.days = extendedDays;
+    }
+
+    return parsed;
   } catch (error) {
     console.error("Error generating weekly plan:", error);
     throw error;
